@@ -1,0 +1,11 @@
+{
+  "include": ["src", "generated"],
+  "executionEnvironments": [
+    {
+      "root": "src"
+    },
+    {
+      "root": "generated"
+    }
+  ]
+}
