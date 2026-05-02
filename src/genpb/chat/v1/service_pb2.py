@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from chat.v1 import message_pb2 as chat_dot_v1_dot_message__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15\x63hat/v1/service.proto\x12\x07\x63hat.v1\x1a\x15\x63hat/v1/message.proto2K\n\x0b\x43hatService\x12<\n\nChatStream\x12\x14.chat.v1.ChatMessage\x1a\x14.chat.v1.ChatMessage(\x01\x30\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15\x63hat/v1/service.proto\x12\x07\x63hat.v1\x1a\x15\x63hat/v1/message.proto2X\n\x0b\x43hatService\x12I\n\nChatStream\x12\x1b.chat.v1.ChatMessageRequest\x1a\x1a.chat.v1.ChatChunkResponse(\x01\x30\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,5 +33,5 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'chat.v1.service_pb2', _glob
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_CHATSERVICE']._serialized_start=57
-  _globals['_CHATSERVICE']._serialized_end=132
+  _globals['_CHATSERVICE']._serialized_end=145
 # @@protoc_insertion_point(module_scope)

@@ -5,6 +5,6 @@ package chat.v1;
 import "chat/v1/message.proto";
 
 service ChatService {
-  rpc ChatStream(stream ChatMessage) returns (stream ChatMessage);
+  rpc ChatStream(stream ChatMessageRequest) returns (stream ChatChunkResponse);
 }
 

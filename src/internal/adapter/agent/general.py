@@ -1,30 +1,34 @@
 from repository.agent import AgentRepository
-from typing_extensions import AsyncGenerator
+from typing_extensions import AsyncGenerator, TypedDict
+
+
+class StreamChunk(TypedDict):
+    content: str
+    end: bool
 
 
 class GeneralAgent(AgentRepository):
     def __init__(self, rg):
         self.rg = rg
 
-    async def receive(self, msg: str) -> AsyncGenerator[str, None]:
+    async def receive(self, msg: str) -> AsyncGenerator[StreamChunk, None]:
         try:
-            async for event in self.rg.astream(
+            async for chunk in self.rg.astream(
                 {"messages": [{"role": "user", "content": msg}]},
-                stream_mode="updates",
+                stream_mode="messages",
+                version="v2",
             ):
-                for node_name, node_data in event.items():
-                    if "messages" in node_data:
-                        last_message = node_data["messages"][-1]
+                if chunk.get("type") == "messages":
+                    message_chunk = chunk["data"][0]
+                    content = message_chunk.get("content", "")
 
-                        if isinstance(last_message, dict):
-                            content = last_message.get("content")
-                            msg_type = last_message.get("type")
-                        else:
-                            content = getattr(last_message, "content", "")
-                            msg_type = getattr(last_message, "type", "")
+                    if content:
+                        yield {"content": content, "end": False}
 
-                        if msg_type == "ai" and content:
-                            yield content
+            yield {"content": "", "end": True}
+
         except Exception as e:
-            print(f"Error in GeneralAgent: {e}")
-            raise e
+            yield {
+                "content": str(e),
+                "end": True,
+            }

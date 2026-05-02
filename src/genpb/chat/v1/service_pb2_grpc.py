@@ -36,8 +36,8 @@ class ChatServiceStub(object):
         """
         self.ChatStream = channel.stream_stream(
                 '/chat.v1.ChatService/ChatStream',
-                request_serializer=chat_dot_v1_dot_message__pb2.ChatMessage.SerializeToString,
-                response_deserializer=chat_dot_v1_dot_message__pb2.ChatMessage.FromString,
+                request_serializer=chat_dot_v1_dot_message__pb2.ChatMessageRequest.SerializeToString,
+                response_deserializer=chat_dot_v1_dot_message__pb2.ChatChunkResponse.FromString,
                 _registered_method=True)
 
 
@@ -55,8 +55,8 @@ def add_ChatServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ChatStream': grpc.stream_stream_rpc_method_handler(
                     servicer.ChatStream,
-                    request_deserializer=chat_dot_v1_dot_message__pb2.ChatMessage.FromString,
-                    response_serializer=chat_dot_v1_dot_message__pb2.ChatMessage.SerializeToString,
+                    request_deserializer=chat_dot_v1_dot_message__pb2.ChatMessageRequest.FromString,
+                    response_serializer=chat_dot_v1_dot_message__pb2.ChatChunkResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -84,8 +84,8 @@ class ChatService(object):
             request_iterator,
             target,
             '/chat.v1.ChatService/ChatStream',
-            chat_dot_v1_dot_message__pb2.ChatMessage.SerializeToString,
-            chat_dot_v1_dot_message__pb2.ChatMessage.FromString,
+            chat_dot_v1_dot_message__pb2.ChatMessageRequest.SerializeToString,
+            chat_dot_v1_dot_message__pb2.ChatChunkResponse.FromString,
             options,
             channel_credentials,
             insecure,

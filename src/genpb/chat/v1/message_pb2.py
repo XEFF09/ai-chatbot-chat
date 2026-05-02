@@ -24,13 +24,15 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15\x63hat/v1/message.proto\x12\x07\x63hat.v1\"?\n\x0b\x43hatMessage\x12\x0c\n\x04user\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\ttimestamp\x18\x03 \x01(\x03\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15\x63hat/v1/message.proto\x12\x07\x63hat.v1\"I\n\x12\x43hatMessageRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\ttimestamp\x18\x03 \x01(\x03\"2\n\x11\x43hatChunkResponse\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\t\x12\x0c\n\x04\x64one\x18\x02 \x01(\x08\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'chat.v1.message_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_CHATMESSAGE']._serialized_start=34
-  _globals['_CHATMESSAGE']._serialized_end=97
+  _globals['_CHATMESSAGEREQUEST']._serialized_start=34
+  _globals['_CHATMESSAGEREQUEST']._serialized_end=107
+  _globals['_CHATCHUNKRESPONSE']._serialized_start=109
+  _globals['_CHATCHUNKRESPONSE']._serialized_end=159
 # @@protoc_insertion_point(module_scope)
