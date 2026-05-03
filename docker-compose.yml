@@ -20,26 +20,6 @@ services:
       --pattern="*.py" 
       --directory="./src" 
       python src/app/main.py
-    depends_on:
-      - langgraph-server
-    networks:
-      - local-network
-
-  langgraph-server:
-    build:
-      context: .
-      dockerfile: docker/dev.Dockerfile
-    ports:
-      - "2024:2024"
-    volumes:
-      - .:/app
-      - /app/.venv
-    environment:
-      - PYTHONPATH=/app/src
-      - PYTHONDONTWRITEBYTECODE=1
-    env_file:
-      - .env
-    command: uv run langgraph dev --host 0.0.0.0 --port 2024
     networks:
       - local-network
 

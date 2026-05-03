@@ -16,8 +16,8 @@ class CriticalAgent(AgentRepository):
                 version="v2",
             ):
                 if chunk.get("type") == "messages":
-                    message_chunk = chunk["data"][0]
-                    content = message_chunk.get("content", "")
+                    messge_chunk = chunk["data"][0]
+                    content = messge_chunk.content
 
                     if content:
                         yield {

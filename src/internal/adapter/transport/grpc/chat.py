@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import AsyncGenerator
 from typing_extensions import AsyncIterable
 import grpc

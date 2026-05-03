@@ -10,10 +10,10 @@ from repository.agent import AgentFactoryImpl
 from usecase.chat import ChatService
 
 from internal.adapter.agent.critical import CriticalAgent
-from langgraph.pregel.remote import RemoteGraph
 from config.config import AppConfig
 
 from google.protobuf.timestamp_pb2 import Timestamp
+from llm.graph.critical import critical_graph as cg
 
 cfg = AppConfig()
 logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
@@ -23,8 +23,7 @@ logger = logging.getLogger(__name__)
 async def main():
     ts = Timestamp()
 
-    critical_rg = RemoteGraph("critical_graph", url=cfg.langgraph_url)
-    critical_agent_repo = CriticalAgent(critical_rg)
+    critical_agent_repo = CriticalAgent(cg)
 
     agent_factory = AgentFactoryImpl()
     agent_factory.register("critical", critical_agent_repo)
