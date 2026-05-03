@@ -28,7 +28,4 @@ class GeneralAgent(AgentRepository):
             yield {"content": "", "end": True}
 
         except Exception as e:
-            yield {
-                "content": str(e),
-                "end": True,
-            }
+            raise e

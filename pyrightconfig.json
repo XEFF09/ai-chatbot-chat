@@ -1,11 +1,9 @@
 {
-  "include": ["src", "generated"],
+  "include": ["src"],
   "executionEnvironments": [
     {
-      "root": "src"
-    },
-    {
-      "root": "generated"
+      "root": "src",
+      "extraPaths": ["genpb"]
     }
   ]
 }

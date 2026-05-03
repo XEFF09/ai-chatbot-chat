@@ -10,7 +10,7 @@ py-run:
 	 uv run python src/app/main.py
 
 smith-run:
-	@PYTHONDONTWRITEBYTECODE=1 uv run langgraph dev
+	@PYTHONPATH=./src PYTHONDONTWRITEBYTECODE=1 uv run langgraph dev
 
 py-version:
 	@uv python install $(VERSION)
