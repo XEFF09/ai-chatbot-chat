@@ -1,9 +1,10 @@
 from typing_extensions import Protocol, AsyncGenerator
 from typing import Dict
+from dto.message_chunk import StreamChunk
 
 
 class AgentRepository(Protocol):
-    async def receive(self, msg: str) -> AsyncGenerator: ...
+    async def receive(self, msg: str) -> AsyncGenerator[StreamChunk, None]: ...
 
 
 class AgentFactory(Protocol):

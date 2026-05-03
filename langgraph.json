@@ -1,7 +1,7 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "general_agent": "./src/app/global-agent.py:general_agent"
+    "critical_graph": "./src/llm/graph/critical.py:critical_graph"
   },
   "env": ".env"
 }
