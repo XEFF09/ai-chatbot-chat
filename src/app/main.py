@@ -5,14 +5,14 @@ import sys
 from grpc_reflection.v1alpha import reflection
 
 from boostrap.embedding.hf import HfEmbeddings
-from boostrap.llm import HfLLMModel
+from boostrap.llm import HfLLMModel, OpenAILLMModel
 from genpb.chat.v1 import service_pb2_grpc, service_pb2
 from internal.adapter.agent.rag import RagAgent
 from internal.adapter.store.qdrant.lilianweng import LilianwengStore
 from internal.adapter.tools.lilianweng import LilianwengToolSet
 from internal.adapter.transport.grpc.chat import ChatHandler
 from internal.adapter.workflow.critical import CriticalWorkflow
-from internal.adapter.workflow.rag import RagWorkflow
+from internal.adapter.workflow.lilianweng import LilianwengWorkflow
 from repository.agent import AgentFactoryImpl
 from usecase.chat import ChatService
 
@@ -27,17 +27,19 @@ logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
-async def init_rag(agent_factory, model, embeddings):
+async def init_rag(agent_factory, generate_model, grade_model, embeddings):
     lilianweng_store = await LilianwengStore(
         embeddings=embeddings,
         collection="lilianweng",
         cfg=cfg,
     ).build()
     lilianweng_tool_set = LilianwengToolSet(lilianweng_store)
-    rag_workflow = RagWorkflow(model, lilianweng_tool_set.get_tools()).get_graph()
+    rag_workflow = LilianwengWorkflow(
+        generate_model, grade_model, lilianweng_tool_set.get_tools()
+    ).get_graph()
 
     rag_agent = RagAgent(rag_workflow)
-    agent_factory.register("rag", rag_agent)
+    agent_factory.register("lilianweng", rag_agent)
 
 
 async def main():
@@ -45,16 +47,19 @@ async def main():
 
     ts = Timestamp()
 
-    model = HfLLMModel(cfg).build()
+    generate_model = HfLLMModel(cfg, "deepseek-ai/DeepSeek-V4-Flash").build()
+    grade_model = OpenAILLMModel(cfg, "gpt-4o-mini").build()
     embeddings = HfEmbeddings(cfg).build()
 
-    critical_workflow = CriticalWorkflow(model).get_graph()
+    critical_workflow = CriticalWorkflow(generate_model).get_graph()
     critical_agent = CriticalAgent(critical_workflow)
 
     agent_factory = AgentFactoryImpl()
     agent_factory.register("critical", critical_agent)
 
-    asyncio.create_task(init_rag(agent_factory, model, embeddings))
+    asyncio.create_task(
+        init_rag(agent_factory, generate_model, grade_model, embeddings)
+    )
 
     chat_service = ChatService(agent_factory)
     chat_handler = ChatHandler(chat_service, ts)
