@@ -17,12 +17,17 @@ class AppConfig(BaseModel):
         default_factory=lambda: os.getenv("DEBUG", "true").lower() == "true"
     )
 
-
-class AIConfig(BaseModel):
     hf_api_token: str = Field(
         default_factory=lambda: os.getenv("HUGGINGFACEHUB_API_TOKEN", "")
     )
     langgraph_tracing: bool = Field(
         default_factory=lambda: os.getenv("LANGGRAPH_TRACING", "false").lower()
         == "true"
+    )
+    openai_api_key: str = Field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
+    qdrant_db_host: str = Field(
+        default_factory=lambda: os.getenv("QDRANT_DB_HOST", "localhost")
+    )
+    qdrant_db_port: int = Field(
+        default_factory=lambda: int(os.getenv("QDRANT_DB_PORT", "6334"))
     )

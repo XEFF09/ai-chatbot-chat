@@ -1,4 +1,3 @@
-from logging import Logger
 from typing import AsyncGenerator
 from typing_extensions import AsyncIterable
 import grpc
@@ -25,7 +24,7 @@ class ChatHandler(service_pb2_grpc.ChatServiceServicer):
     ) -> AsyncGenerator[message_pb2.ChatChunkResponse, None]:
         try:
             async for request in request_iterator:
-                responses = self.chat_service.execute_agent(
+                responses = self.chat_service.execute_stream(
                     request.message,
                     request.agent,
                 )

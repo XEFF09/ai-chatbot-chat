@@ -4,8 +4,15 @@ import logging
 import sys
 from grpc_reflection.v1alpha import reflection
 
+from boostrap.embedding.hf import HfEmbeddings
+from boostrap.llm import HfLLMModel
 from genpb.chat.v1 import service_pb2_grpc, service_pb2
+from internal.adapter.agent.rag import RagAgent
+from internal.adapter.store.qdrant.liliangweng import LiliangwengStore
+from internal.adapter.tools.liliangweng import LiliangwengToolSet
 from internal.adapter.transport.grpc.chat import ChatHandler
+from internal.adapter.workflow.critical import CriticalWorkflow
+from internal.adapter.workflow.rag import RagWorkflow
 from repository.agent import AgentFactoryImpl
 from usecase.chat import ChatService
 
@@ -13,22 +20,41 @@ from internal.adapter.agent.critical import CriticalAgent
 from config.config import AppConfig
 
 from google.protobuf.timestamp_pb2 import Timestamp
-from llm.graph.critical import critical_graph as cg
+
 
 cfg = AppConfig()
 logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
+async def init_rag(agent_factory, model, embeddings):
+    liliangweng_store = await LiliangwengStore(
+        embeddings=embeddings,
+        collection="liliangweng",
+        cfg=cfg,
+    ).build()
+    liliangweng_tool_set = LiliangwengToolSet(liliangweng_store)
+    rag_workflow = RagWorkflow(model, liliangweng_tool_set.get_tools()).get_graph()
+
+    rag_agent = RagAgent(rag_workflow)
+    agent_factory.register("rag", rag_agent)
+
+
 async def main():
+    server = grpc.aio.server()
+
     ts = Timestamp()
 
-    critical_agent_repo = CriticalAgent(cg)
+    model = HfLLMModel(cfg).build()
+    embeddings = HfEmbeddings(cfg).build()
+
+    critical_workflow = CriticalWorkflow(model).get_graph()
+    critical_agent = CriticalAgent(critical_workflow)
 
     agent_factory = AgentFactoryImpl()
-    agent_factory.register("critical", critical_agent_repo)
+    agent_factory.register("critical", critical_agent)
 
-    server = grpc.aio.server()
+    asyncio.create_task(init_rag(agent_factory, model, embeddings))
 
     chat_service = ChatService(agent_factory)
     chat_handler = ChatHandler(chat_service, ts)

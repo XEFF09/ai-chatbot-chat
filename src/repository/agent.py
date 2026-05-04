@@ -4,7 +4,7 @@ from dto.message_chunk import StreamChunk
 
 
 class AgentRepository(Protocol):
-    async def receive(self, msg: str) -> AsyncGenerator[StreamChunk, None]: ...
+    async def stream(self, msg: str) -> AsyncGenerator[StreamChunk, None]: ...
 
 
 class AgentFactory(Protocol):

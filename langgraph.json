@@ -1,7 +1,7 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "critical_graph": "./src/llm/graph/critical.py:critical_graph"
+    "critical_graph": "./src/internal/adapter/workflow/rag.py:test_rag_wf"
   },
   "env": ".env"
 }

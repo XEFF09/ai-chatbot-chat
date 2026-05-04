@@ -4,13 +4,13 @@ from dto.message_chunk import StreamChunk, ChunkType
 
 
 class CriticalAgent(AgentRepository):
-    def __init__(self, rg):
-        self.rg = rg
+    def __init__(self, workflow):
+        self.workflow = workflow
 
-    async def receive(self, msg: str) -> AsyncGenerator[StreamChunk, None]:
+    async def stream(self, msg: str) -> AsyncGenerator[StreamChunk, None]:
         try:
-            inputs = {"reqMessage": msg}
-            async for chunk in self.rg.astream(
+            inputs = {"req_message": msg}
+            async for chunk in self.workflow.astream(
                 inputs,
                 stream_mode=["messages", "updates"],
                 version="v2",
@@ -45,5 +45,6 @@ class CriticalAgent(AgentRepository):
                 "content": "",
                 "end": True,
             }
+
         except Exception as e:
             raise e
