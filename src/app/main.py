@@ -8,8 +8,8 @@ from boostrap.embedding.hf import HfEmbeddings
 from boostrap.llm import HfLLMModel
 from genpb.chat.v1 import service_pb2_grpc, service_pb2
 from internal.adapter.agent.rag import RagAgent
-from internal.adapter.store.qdrant.liliangweng import LiliangwengStore
-from internal.adapter.tools.liliangweng import LiliangwengToolSet
+from internal.adapter.store.qdrant.lilianweng import LilianwengStore
+from internal.adapter.tools.lilianweng import LilianwengToolSet
 from internal.adapter.transport.grpc.chat import ChatHandler
 from internal.adapter.workflow.critical import CriticalWorkflow
 from internal.adapter.workflow.rag import RagWorkflow
@@ -28,13 +28,13 @@ logger = logging.getLogger(__name__)
 
 
 async def init_rag(agent_factory, model, embeddings):
-    liliangweng_store = await LiliangwengStore(
+    lilianweng_store = await LilianwengStore(
         embeddings=embeddings,
-        collection="liliangweng",
+        collection="lilianweng",
         cfg=cfg,
     ).build()
-    liliangweng_tool_set = LiliangwengToolSet(liliangweng_store)
-    rag_workflow = RagWorkflow(model, liliangweng_tool_set.get_tools()).get_graph()
+    lilianweng_tool_set = LilianwengToolSet(lilianweng_store)
+    rag_workflow = RagWorkflow(model, lilianweng_tool_set.get_tools()).get_graph()
 
     rag_agent = RagAgent(rag_workflow)
     agent_factory.register("rag", rag_agent)
