@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package chat.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message ChatMessageRequest {
+  string user_id = 1;
+  string message = 2;
+  string agent = 3;
+  int64 timestamp = 4;
+}
+
+enum ChunkType {
+  CHUNK_TYPE_UNSPECIFIED = 0;
+  TYPE_TOKEN = 1;
+  TYPE_NODE_COMPLETE = 2;
+}
+
+message ErrorInfo {
+  string code = 1;
+  string message = 2;
+}
+
+message ChatChunkResponse {
+  string token = 1;
+  ChunkType type = 2;
+  string node = 3;
+  optional ErrorInfo error = 4;
+  bool is_final = 5;
+
+  google.protobuf.Timestamp timestamp = 6;
+}

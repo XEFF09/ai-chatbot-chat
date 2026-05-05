@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "critical_graph": "./src/internal/adapter/workflow/rag.py:test_rag_wf"
+  },
+  "env": ".env"
+}
