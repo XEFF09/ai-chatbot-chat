@@ -3,21 +3,12 @@ from langgraph.graph import StateGraph, MessagesState as State, START, END
 from langgraph.graph.state import CompiledStateGraph
 from repository.workflow import Workflow
 from langgraph.prebuilt import ToolNode, tools_condition
-from pydantic import BaseModel, Field
-
-
-class GradeDocuments(BaseModel):
-    """Grade documents using a binary score for relevance check."""
-
-    binary_score: str = Field(
-        description="Relevance score: 'yes' if relevant, or 'no' if not relevant"
-    )
 
 
 class LilianwengWorkflow(Workflow):
     def __init__(self, generate_model, grade_model, tools):
         self.tools = tools
-        self.generate_model = generate_model.bind_tools(tools)
+        self.generate_model = generate_model
         self.grade_model = grade_model
         self.workflow = self._build_workflow()
         self.GRADE_PROMPT = (
@@ -50,7 +41,9 @@ class LilianwengWorkflow(Workflow):
         builder.add_node("gen_query_or_respond_node", self.gen_query_or_respond_node)
         builder.add_node("rewrite_question_node", self.rewrite_question_node)
         builder.add_node("gen_ans_node", self.gen_ans_node)
-        builder.add_node("retrieve_node", ToolNode(self.tools))
+        builder.add_node("retrieve_node", ToolNode([self.tools["retriever_tool"]]))
+        builder.add_node("no_data_node", self.no_data_node)
+        builder.add_node("grade_doc_node", self.grade_doc_node)
 
         builder.add_edge(START, "gen_query_or_respond_node")
         builder.add_conditional_edges(
@@ -63,34 +56,69 @@ class LilianwengWorkflow(Workflow):
         )
         builder.add_conditional_edges(
             "retrieve_node",
-            self.grade_doc_activator,
+            self.retrieve_router,
+            {
+                "no_data": "no_data_node",
+                "grade_doc": "grade_doc_node",
+            },
         )
-        builder.add_edge("gen_ans_node", END)
+
+        builder.add_conditional_edges(
+            "grade_doc_node",
+            self.grade_doc_router,
+            {
+                "gen_ans": "gen_ans_node",
+                "rewrite_question": "rewrite_question_node",
+            },
+        )
         builder.add_edge("rewrite_question_node", "gen_query_or_respond_node")
+        builder.add_edge("gen_ans_node", END)
+        builder.add_edge("no_data_node", END)
 
         return builder.compile()
 
     async def gen_query_or_respond_node(self, state: State):
-        res = await self.generate_model.ainvoke(state["messages"])
+        res = await self.generate_model.bind_tools(
+            [self.tools["retriever_tool"]]
+        ).ainvoke(state["messages"])
         return {"messages": [res]}
 
-    async def grade_doc_activator(self, state: State):
+    def no_data_node(self, state: State):
+        return {
+            "messages": [
+                HumanMessage(
+                    content="I couldn't find any relevant data to answer your question."
+                )
+            ]
+        }
+
+    def retrieve_router(self, state: State):
+        context = state["messages"][-1].content
+
+        if not str(context).strip():
+            return "no_data"
+
+        return "grade_doc"
+
+    def grade_doc_node(self, state: State):
         """Determine whether the retrieved documents are relevant to the question."""
         question = state["messages"][0].content
         context = state["messages"][-1].content
 
         prompt = self.GRADE_PROMPT.format(question=question, context=context)
-        response = await self.grade_model.with_structured_output(
-            GradeDocuments
-        ).ainvoke([{"role": "user", "content": prompt}])
-        score = response.binary_score
+        response = self.grade_model.invoke([{"role": "user", "content": prompt}])
+        return {"messages": [response]}
 
-        if score == "yes":
-            return "gen_ans_node"
+    def grade_doc_router(self, state: State):
+        decision_msg = state["messages"][-1].content
+        decision = str(decision_msg).strip().lower()
+
+        if "yes" in decision:
+            return "gen_ans"
         else:
-            return "rewrite_question_node"
+            return "rewrite_question"
 
-    async def rewrite_question_node(self, state: State):
+    def rewrite_question_node(self, state: State):
         """Rewrite the original user question."""
         messages = state["messages"]
         question = messages[0].content
@@ -101,7 +129,7 @@ class LilianwengWorkflow(Workflow):
     def gen_ans_node(self, state: State):
         """Generate an answer."""
         question = state["messages"][0].content
-        context = state["messages"][-1].content
+        context = state["messages"][-2].content
         prompt = self.GENERATE_PROMPT.format(question=question, context=context)
         response = self.generate_model.invoke([{"role": "user", "content": prompt}])
         return {"messages": [response]}

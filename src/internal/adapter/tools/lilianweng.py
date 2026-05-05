@@ -13,4 +13,4 @@ class LilianwengToolSet:
             docs = await retriever.ainvoke(query)
             return "\n\n".join([doc.page_content for doc in docs])
 
-        return [retriever_tool]
+        return {retriever_tool.name: retriever_tool}

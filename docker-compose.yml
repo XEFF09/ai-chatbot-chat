@@ -7,34 +7,27 @@ services:
       - .:/app
       - /app/.venv
       - hf_cache:/root/.cache/huggingface
-    working_dir: /app
+    init: true
     ports:
       - "${GRPC_PORT}:50051"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
     env_file:
       - .env
-    environment:
-      - PYTHONPATH=/app/src:/app/src/genpb
-      - PYTHONDONTWRITEBYTECODE=1
-      - QDRANT_URL=http://${QDRANT_DB_HOST}:${QDRANT_DB_PORT}
-      - QDRANT_GRPC_URL=${QDRANT_DB_HOST}:6334
+    restart: unless-stopped
     depends_on:
       - qdrant
-    command: >
-      uv run watchmedo auto-restart 
-      --recursive 
-      --pattern="*.py" 
-      --directory="./src" 
-      python src/app/main.py
+    command: ["python", "src/app/main.py"]
     networks:
       - local-network
 
   qdrant:
     image: qdrant/qdrant:latest
     ports:
-      - "${QDRANT_DB_PORT}:6333" # HTTP API
-      - "6334:6334" # gRPC API
+      - "${QDRANT_DB_PORT}:6333"
+      - "6334:6334"
     volumes:
-      - ./qdrant_storage:/qdrant/storage:z
+      - qdrant_data:/qdrant/storage:z
     restart: always
     environment:
       - QDRANT__SERVICE__GRPC_PORT=6334
@@ -43,6 +36,7 @@ services:
 
 volumes:
   hf_cache:
+  qdrant_data:
 
 networks:
   local-network:

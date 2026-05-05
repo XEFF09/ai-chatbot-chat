@@ -5,7 +5,7 @@ import sys
 from grpc_reflection.v1alpha import reflection
 
 from boostrap.embedding.hf import HfEmbeddings
-from boostrap.llm import HfLLMModel, OpenAILLMModel
+from boostrap.llm import HfLLMModel
 from genpb.chat.v1 import service_pb2_grpc, service_pb2
 from internal.adapter.agent.rag import RagAgent
 from internal.adapter.store.qdrant.lilianweng import LilianwengStore
@@ -30,8 +30,8 @@ logger = logging.getLogger(__name__)
 async def init_rag(agent_factory, generate_model, grade_model, embeddings):
     lilianweng_store = await LilianwengStore(
         embeddings=embeddings,
-        collection="lilianweng",
-        cfg=cfg,
+        url=f"http://qdrant:{cfg.qdrant_db_port}",
+        logger=logger,
     ).build()
     lilianweng_tool_set = LilianwengToolSet(lilianweng_store)
     rag_workflow = LilianwengWorkflow(
@@ -48,7 +48,7 @@ async def main():
     ts = Timestamp()
 
     generate_model = HfLLMModel(cfg, "deepseek-ai/DeepSeek-V4-Flash").build()
-    grade_model = OpenAILLMModel(cfg, "gpt-4o-mini").build()
+    grade_model = HfLLMModel(cfg, "zai-org/GLM-5.1").build()
     embeddings = HfEmbeddings(cfg).build()
 
     critical_workflow = CriticalWorkflow(generate_model).get_graph()
