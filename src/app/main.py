@@ -57,9 +57,7 @@ async def main():
     agent_factory = AgentFactoryImpl()
     agent_factory.register("critical", critical_agent)
 
-    asyncio.create_task(
-        init_rag(agent_factory, generate_model, grade_model, embeddings)
-    )
+    await init_rag(agent_factory, generate_model, grade_model, embeddings)
 
     chat_service = ChatService(agent_factory)
     chat_handler = ChatHandler(chat_service, ts)

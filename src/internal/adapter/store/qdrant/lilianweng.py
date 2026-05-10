@@ -4,6 +4,7 @@ from langchain_community.document_loaders import WebBaseLoader
 from langchain_qdrant import QdrantVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.embeddings import Embeddings
+from langchain_core.documents import Document
 
 
 class LilianwengStore:
@@ -41,13 +42,14 @@ class LilianwengStore:
         )
 
         docs_list = [item for sublist in docs for item in sublist]
+        cleaned_docs = await asyncio.to_thread(self._clean_documents, docs_list)
 
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=700,
             chunk_overlap=100,
         )
 
-        splits = splitter.split_documents(docs_list)
+        splits = splitter.split_documents(cleaned_docs)
 
         return await asyncio.to_thread(
             QdrantVectorStore.from_documents,
@@ -56,3 +58,32 @@ class LilianwengStore:
             url=self._url,
             collection_name=self._collection,
         )
+
+    def _clean_documents(self, documents: list[Document]) -> list[Document]:
+        """Clean HTML content from documents using BeautifulSoup."""
+        try:
+            from bs4 import BeautifulSoup
+        except ImportError:
+            self._logger.warning("BeautifulSoup not installed, skipping HTML cleaning")
+            return documents
+
+        cleaned_docs = []
+        for doc in documents:
+            try:
+                soup = BeautifulSoup(doc.page_content, "html.parser")
+
+                for script in soup(["script", "style", "nav", "footer"]):
+                    script.decompose()
+
+                text = soup.get_text(separator="\n", strip=True)
+
+                lines = [line.strip() for line in text.split("\n")]
+                text = "\n".join(line for line in lines if line)
+
+                cleaned_doc = Document(page_content=text, metadata=doc.metadata)
+                cleaned_docs.append(cleaned_doc)
+            except Exception as e:
+                self._logger.warning(f"Error cleaning document: {e}, keeping original")
+                cleaned_docs.append(doc)
+
+        return cleaned_docs
